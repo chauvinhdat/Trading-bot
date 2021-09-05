@@ -16,4 +16,4 @@ def home():
     ]
     labels = [row[0] for row in data]
     values = [row[1] for row in data]
-    return render_template("base.html", labels=labels, values=values)
+    return render_template("index.html", labels=labels, values=values)

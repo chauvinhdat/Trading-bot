@@ -310,7 +310,7 @@ def bruh():
         except:
             resetLog()
             resetgrid()
-            return render_template("base.html")            
+            return render_template("index.html")            
         updateBalance_manual(float(text))
         total_balance = begin()
         labels = timestamp_storage
@@ -318,10 +318,10 @@ def bruh():
         grid_v = get_grid()
         grid_l = get_grid_count()
         loggy = getLog()
-        return render_template("base.html", labels=labels, values=values, grid_v=grid_v,grid_l=grid_l,total_balance=total_balance,loggy=loggy) 
-    return render_template("base.html")
+        return render_template("index.html", labels=labels, values=values, grid_v=grid_v,grid_l=grid_l,total_balance=total_balance,loggy=loggy) 
+    return render_template("index.html")
 
 @bot_trading.route('/')
 def home():
-    return render_template("base.html")
+    return render_template("index.html")
 
