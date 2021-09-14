@@ -1,29 +1,18 @@
 from requests.api import request
-import selenium
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import chrome
+
 import os
 import time
-import schedule
 import requests
 import json
 import csv
 from datetime import date, datetime
 
-#PATH = "C:\Program Files (x86)\chromedriver.exe"
-
-#driver = webdriver.Chrome(PATH)
-#driver.get("https://www.wealthsimple.com")
-url = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=GME&interval=5min&apikey=SU6OH7HAUS5X1OSU'
-month_url = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=GME&interval=5min&outputsize=full&apikey=SU6OH7HAUS5X1OSU'
-r = requests.get(url)
-data = r.json()
-month_r = requests.get(month_url)
-month_data = month_r.json()
+url = ''
+month_url = ''
+r = None
+data = None
+month_r = None
+month_data = None
 
 today = datetime.now()
 today = today.strftime("%Y-%m-%d %H:%M:%S")
@@ -32,30 +21,61 @@ absolute_path = os.path.dirname(os.path.abspath(__file__))
 # Or: file_path = os.path.join(absolute_path, 'folder', 'my_file.py')
 balance_file_path = absolute_path + '\\balance.json'
 
+def set_url(functionInterval,timeInterval, symbol):
+    try:
+        global url
+        t_url = "https://www.alphavantage.co/query?function=" + str(functionInterval) + "&symbol=" + str(symbol) + "&interval=" + str(timeInterval) + "&apikey=SU6OH7HAUS5X1OSU"
+        if(t_url != url):
+            url = t_url
+        global month_url
+        t_month_url = "https://www.alphavantage.co/query?function=" + str(functionInterval) + "&symbol=" + str(symbol) + "&interval=" + str(timeInterval) + "&outputsize=full&apikey=SU6OH7HAUS5X1OSU"    
+        if(t_month_url != month_url):
+            month_url = t_month_url
+        global r
+        r = requests.get(url)
+        global data
+        data = r.json()
+        global month_r
+        month_r = requests.get(month_url)
+        global month_data
+        month_data = month_r.json()
+        print(month_data)
+    except:
+        quit()
+
 # print(data['Time Series (5min)']['2021-08-24 19:55:00'])
 # retrive stock info from timestamp (today, every 5 minutes)
 log = []
 timestamp_storage = []
-i = 0
+
+series = ""
 #value are 5 minutes behind to yahoo finance (NOTE)
-for timestamp in data['Time Series (5min)']:
-    print(timestamp+": ")
-    print(data['Time Series (5min)'][timestamp]['4. close'])
-    timestamp_storage.append(timestamp)
-    i += 1
+def set_timestamp():
+    i = 0
+    for timestamp in data[series]:
+        print(timestamp+": ")
+        print(data[series][timestamp]['4. close'])
+        timestamp_storage.append(timestamp)
+        i += 1
+
+def reset_timestamp():
+    if len(timestamp_storage) == 0:
+        return 0
+    for i in range(len(timestamp_storage)):
+        timestamp_storage.pop(0)
 
 def store_timestamp(database, onlydate):
     arr = []
     if(onlydate == False):    
-        for timestamp in database['Time Series (5min)']:
+        for timestamp in database[series]:
             arr.append(timestamp)
     else:
-        for timestamp in database['Time Series (5min)']:
+        for timestamp in database[series]:
             arr.append(timestamp[:-9])
     return arr
 
 def get_price(date_time):
-    return float(month_data['Time Series (5min)'][date_time]['4. close'][-10:])
+    return float(month_data[series][date_time]['4. close'][-10:])
 
 def saveLog(toSave):
     log.append(toSave)
@@ -242,16 +262,23 @@ def resetgrid():
         grid_stocks.pop(0)
 
 def reset_purchase_stocks():
+    if len(purchased_stocks) == 0:
+        return 0
     for i in range(len(purchased_stocks)):
         purchased_stocks.pop(0)
     return 0
 
-def reset_bought_stocks():
+def reset_sold_stocks():
+    if len(sold_stocks) == 0:
+        return 0
     for i in range(len(sold_stocks)):
         sold_stocks.pop(0)
     return 0
 
-def begin():
+def begin(interval):
+    global series
+    series = 'Time Series (' + str(interval)+ ')'
+    set_timestamp()
     avg_trending = calculate_trend(True)
     p_price = 0
     c = []
@@ -263,21 +290,27 @@ def begin():
     for stonks in purchased_stocks:
         print(stonks)
     bal = get_balance()
-    tt = ("Total balance: " + str((len(purchased_stocks))*p_price + float(bal['USD'])))
-    print(tt)
-    updateBalance_manual(1000)
+    round = "{:.3f}".format(((len(purchased_stocks))*p_price + float(bal['USD'])))
+    tt = ("Total balance: " + str(round))
+    #print(tt)
+    updateBalance_manual(0)
     reset_purchase_stocks()
-    print(purchased_stocks)
+    reset_sold_stocks()
+    #print(purchased_stocks)
+    #print(series)
     return tt
-
-def set_url(functionInterval,timeInterval, symbol):
-    url = "https://www.alphavantage.co/query?function=" + functionInterval + "&symbol=" + symbol + "&interval=" + timeInterval + "&apikey=SU6OH7HAUS5X1OSU"
-    month_url = "https://www.alphavantage.co/query?function=" + functionInterval + "&symbol=" + symbol + "&interval=" + timeInterval + "&outputsize=full&apikey=SU6OH7HAUS5X1OSU"
 
 #main
 price_daily = []
-for time in timestamp_storage:
-    price_daily.append(get_price(time))
+def set_pricedaily():
+    for time in timestamp_storage:
+        price_daily.append(get_price(time))
+
+def reset_pricedaily():
+    if len(price_daily) == 0:
+        return 0
+    for i in range(len(price_daily)):
+        price_daily.pop(0)
 
 def getLog():
     return log
@@ -286,13 +319,10 @@ def get_grid():
     return grid_stocks
 
 def get_grid_count():
-    print(grid_stocks)
     counter=[]
     for count in range(len(grid_stocks)):
         counter.append(count) 
     return counter
-
-updateBalance_manual(1000)
 
 from flask import Blueprint, render_template, request, flash, jsonify
 
@@ -305,20 +335,40 @@ def bruh():
     text = ""
     if request.method == 'POST':
         text = request.form["balance"]
+        symbol = request.form["symbol"]
+        interval = request.form["Interval"]
         try:
-            float(text) 
+            float(symbol)
+            #if symbol contain number then return default
+            return render_template("index.html")
+        except:
+            if ((text == None or text == "") or (symbol == None or symbol == "") or (interval == None or interval == "empty")):
+                return render_template("index.html")
+        if (len(getLog()) > 1) or (len(timestamp_storage) > 1) or (len(price_daily) > 1) or (len(get_grid()) > 1):
+            reset_pricedaily()
+            reset_timestamp()
+            resetLog()
+            resetgrid()
+        try:
+            float(text)
         except:
             resetLog()
             resetgrid()
-            return render_template("index.html")            
+            reset_timestamp()
+            reset_pricedaily()
+            return render_template("index.html")  
+        set_url("TIME_SERIES_INTRADAY", interval, symbol)  
         updateBalance_manual(float(text))
-        total_balance = begin()
+        total_balance = begin(interval)
+        set_pricedaily()
         labels = timestamp_storage
         values = price_daily
         grid_v = get_grid()
         grid_l = get_grid_count()
         loggy = getLog()
-        return render_template("index.html", labels=labels, values=values, grid_v=grid_v,grid_l=grid_l,total_balance=total_balance,loggy=loggy) 
+        balance = "Budget: "+ str(text)
+        stonk = "Stonk: "+ str(symbol)
+        return render_template("index.html", labels=labels, values=values, grid_v=grid_v,grid_l=grid_l,total_balance=total_balance,loggy=loggy, balance=balance, stonk=stonk) 
     return render_template("index.html")
 
 @bot_trading.route('/')

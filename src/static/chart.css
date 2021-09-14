@@ -1,29 +1,132 @@
+.mainHeader {
+    position: relative;
+    font-size: 30px;
+    padding: 0;
+    margin: 0;
+    font-family: "Times New Roman", Times, serif;
+    background: rgb(18, 198, 211);
+}
+body {
+    margin: 0;
+    background-image: url("picture/background.jpg");
+}
 h1 {
-
-    background-color: rgb(201, 76, 76);
+    margin: 0;
+    background-color: rgba(243, 240, 240, 0.452);
+    height: 65px;
+}
+.balanceHeader{
+    color: rgb(221, 19, 19);
+    font-size: 26px;
 }
 .balanceText { 
     position: absolute;
     font-size: 20px;
+    top: 1.5cm;
     left: 1cm; 
     margin: 1px;
     width: 1400px; 
     text-align: left;
 }
+.symbolText {
+    position: absolute;
+    left: 10cm;
+}
+.container {
+    display: flex;
+    width: 100px;
+    flex-direction: column;
+}
+.container .header {
+    position: absolute;
+    top: 1.6cm;
+    left: 20.5cm;
+    font-size: 20px;
+}
+.container .intervalNav{
+    position: absolute;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    left: 25.2cm;
+    top: 2.6cm;
+    font-size: 20px;
+    text-align: center;
+    max-height: 0;
+    opacity: 0;
+    width: 160px;
+    transition: all 0.4s;
+    background: #A0A0A0;
+    overflow: hidden;
+    order: 1;
+    z-index: 99;
+}
+.container .intervalNav label, .container .selectedInterval {
+    cursor: pointer;
+}
+.container .selectedInterval {
+    background: brown;
+    position: relative;
+    width: 160px;
+    left: 19.8cm;
+    top: 0.35cm;
+    font-size: 20px;
+    text-align: left;
+    padding: 6px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.container .intervalNav .radio {
+    display: none;
+}
+
+.container .selectedInterval:hover{
+    background: grey;
+}
+
+.container .intervalNav div:hover{
+    background: grey;
+}
+
+.container .intervalNav.active {
+    max-height: 240px;
+    opacity: 1;
+}
+.selectedInterval::after  {
+    font-family: FontAwesome;
+    content: "\f107";
+    display: inline-block;
+    font-weight: 900;
+
+    position: absolute;
+    height: 100%;
+    width: 20px;
+    right: 0px;
+    top: 8px;
+    transition: all 0.4s;
+}
+.container .intervalNav.active + .selectedInterval::after {
+    transform: rotateX(190deg);
+    top: -6px;
+}
+.Interval {
+    position: absolute;
+    bottom: 0;
+}
 .submitButton {
     position: absolute;
-    top: 4cm;
+    top: 3cm;
 }
 .resetButton {
     position: absolute;
     left: 4cm;
 }
-.message {
+.txtarea .message {
     position: absolute;
     width: 40px;
     height: 750px;
     right: 0;
-    top: 5cm;
+    top: 6cm;
     padding: 0.8em;
     margin-bottom: 10em;
     border-radius: 10em;
@@ -34,13 +137,11 @@ h1 {
 .txtarea .message{
     font-size: 0.5px;
 }
-.txtarea .message:hover{
+.txtarea .message.active{
     font-size: 15px;
-    width: 450px;
-    padding: 0.8em;
     margin-bottom: 1em;
     border-radius: .4em;
-    animation: anime 5s;
+    animation: anime 4s;
 }
 @keyframes anime{
     0% {
@@ -54,30 +155,24 @@ h1 {
     position: absolute;
     font-size: 20px;
     right: 0;
-    margin: 0.9em;
+    margin: 1em;
     transition: 1s;
+    top: 1.25cm;
 }
-#myChart {
+
+#myChart.active {
     position: relative;
     margin: 1em;
     left: 30px;
+    transition: all 1s;
+    background: #dbd6d6;
+    color: black;
 }
-#gridChart {
+#gridChart.active {
     position: relative;
     left: 30px;
     margin: 1em;
-}
-.animation {
-    position: absolute;
-    left: 0;
-    width: 300px;
-}
-@keyframes testing {
-    0% {
-        background: crimson;  
-        transform: scale(1.5);
-    }
-    100% {
-        background: black;  
-    }
+    transition: all 1s;
+    background-color: #dbd6d6;
+    color: black;
 }
